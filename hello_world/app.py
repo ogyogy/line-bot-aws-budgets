@@ -64,7 +64,7 @@ def lambda_handler(event, context):
         status = 'not good ' + chr(0x1F613)
     else:
         status = 'good ' + chr(0x1F604)
-    text = 'status = {}\nlimit = {:.2f}$\nactual = {:.2f}$\nforecasted = {:.2f}$'.format(
+    text = 'status = {}\nlimit = ${:.2f}\nactual = ${:.2f}\nforecasted = ${:.2f}'.format(
         status, limit, actual, forecasted
     )
 
