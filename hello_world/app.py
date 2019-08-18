@@ -57,17 +57,15 @@ def lambda_handler(event, context):
     forecasted = float(
         response['Budget']['CalculatedSpend']['ForecastedSpend']['Amount'])
 
-    # 予算に対するコストの状態を取得
-    status = 'unknown'
-    if actual >= limit:
-        status = 'bad'
-    elif forecasted >= limit:
-        status = 'not good'
-    else:
-        status = 'good'
-
     # 応答メッセージを設定
-    text = 'status={}\nlimit = {:.2f}$\nactual = {:.2f}$\nforecasted = {:.2f}$'.format(
+    status = 'unknown' + chr(0x2753)
+    if actual >= limit:
+        status = 'bad' + chr(0x1F631)
+    elif forecasted >= limit:
+        status = 'not good' + chr(0x1F613)
+    else:
+        status = 'good' + chr(0x1F604)
+    text = 'status = {}\nlimit = {:.2f}$\nactual = {:.2f}$\nforecasted = {:.2f}$'.format(
         status, limit, actual, forecasted
     )
 
