@@ -1,6 +1,13 @@
+import logging
 import os
 import json
 import boto3
+from linebot import LineBotApi
+from linebot.models import TextSendMessage
+from linebot.exceptions import LineBotApiError
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 def lambda_handler(event, context):
@@ -25,22 +32,32 @@ def lambda_handler(event, context):
         Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
     """
 
-    # Lambdaで設定した環境変数の取得
+    logger.info(event)
+
+    # Lambdaで設定した環境変数の取得(Messaging API)
+    CHANNEL_ACCESS_TOKEN = os.environ['CHANNEL_ACCESS_TOKEN']
+
+    # Lambdaで設定した環境変数の取得(AWS Budgets)
     ACCOUNT_ID = os.environ['ACCOUNT_ID']
     BUDGET_NAME = os.environ['BUDGET_NAME']
 
+    # 予算の情報の取得
     client = boto3.client('budgets')
     response = client.describe_budget(
         AccountId=ACCOUNT_ID,
         BudgetName=BUDGET_NAME
     )
 
+    logger.info(response)
+
+    # 予算、現行、予測の取得
     limit = float(response['Budget']['BudgetLimit']['Amount'])
     actual = float(response['Budget']['CalculatedSpend']
                    ['ActualSpend']['Amount'])
     forecasted = float(
         response['Budget']['CalculatedSpend']['ForecastedSpend']['Amount'])
 
+    # 予算に対するコストの状態を取得
     status = 'unknown'
     if actual >= limit:
         status = 'bad'
@@ -49,13 +66,27 @@ def lambda_handler(event, context):
     else:
         status = 'good'
 
-    text = 'status={}\nlimit = {:.2f}\nactual = {:.2f}\nforecasted = {:.2f}'.format(
+    # 応答メッセージを設定
+    text = 'status={}\nlimit = {:.2f}$\nactual = {:.2f}$\nforecasted = {:.2f}$'.format(
         status, limit, actual, forecasted
     )
 
+    logger.info(text)
+
+    # Messaging APIに送信するHTTPリクエストを実行
+    line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
+    try:
+        line_bot_api.reply_message(
+            json.loads(event['body'])['events'][0]['replyToken'],
+            TextSendMessage(text=text)
+        )
+    except LineBotApiError as e:
+        # error handle
+        logger.exception(e)
+
     return {
         "statusCode": 200,
-        "body": json.dumps({
-            "message": text,
-        }),
+        # "body": json.dumps({
+        #     "message": text,
+        # }),
     }
