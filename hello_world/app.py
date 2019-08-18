@@ -58,13 +58,12 @@ def lambda_handler(event, context):
         response['Budget']['CalculatedSpend']['ForecastedSpend']['Amount'])
 
     # 応答メッセージを設定
-    status = 'unknown' + chr(0x2753)
     if actual >= limit:
-        status = 'bad' + chr(0x1F631)
+        status = 'bad ' + chr(0x1F631)
     elif forecasted >= limit:
-        status = 'not good' + chr(0x1F613)
+        status = 'not good ' + chr(0x1F613)
     else:
-        status = 'good' + chr(0x1F604)
+        status = 'good ' + chr(0x1F604)
     text = 'status = {}\nlimit = {:.2f}$\nactual = {:.2f}$\nforecasted = {:.2f}$'.format(
         status, limit, actual, forecasted
     )
