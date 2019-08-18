@@ -3,10 +3,9 @@ phases:
   install:
     runtime-versions:
         python: 3.7
-    commands:
-      - pip install -r requirements.txt
   build:
     commands:
+      - pip install -r requirements.txt -t hello_world
       - aws cloudformation package --template-file template.yaml --s3-bucket $BUCKET --output-template-file outputtemplate.yaml
 artifacts:
   type: zip
